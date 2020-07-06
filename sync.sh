@@ -1,7 +1,7 @@
 #!/bin/bash
 
-declare -a gbulid=("node-pm2-alpine")
-whatuse="node-pm2-alpine"
+declare -a gbulid=("node-pm2-alpine" "novnc-alpine")
+whatuse="node-pm2-alpine,novnc-alpine"
 
 echo "Let's build :)"
 gonline="no"
@@ -14,11 +14,13 @@ bulid()
     if [[ $whatuse == *"$i"* ]]; then
 
      echo "$i...."
-     docker build -t "repo.volcanoyt.com/base:$i" -f "$i"/Dockerfile .
+     cd "$i" || exit;
+     docker build -t "repo.volcanoyt.com/base:$i" -f Dockerfile .
+     cd ..
     
      if [[ $gonline == *"yes"* ]]; then
       echo "Start push to our server"
-      docker push repo.volcanoyt.com/module/base:"$i"
+      docker push repo.volcanoyt.com/base:"$i"
      fi
 
     else
@@ -35,7 +37,7 @@ push()
     if [[ $whatuse == *"$i"* ]]; then
 
      echo "$i...."
-     docker push repo.volcanoyt.com/module/base:"$i"
+     docker push repo.volcanoyt.com/base:"$i"
 
     else
      echo "Skip $i"
