@@ -14,7 +14,7 @@ bulid()
     if [[ $whatuse == *"$i"* ]]; then
 
      echo "$i...."
-     docker build -t "repo.volcanoyt.com/module/base:$i" -f "$i"/Dockerfile .     
+     docker build -t "repo.volcanoyt.com/base:$i" -f "$i"/Dockerfile .
     
      if [[ $gonline == *"yes"* ]]; then
       echo "Start push to our server"
