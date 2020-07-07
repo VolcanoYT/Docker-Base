@@ -1,0 +1,89 @@
+<icecast>
+
+	<location>VolcanoYT Streaming</location>
+	<admin>me@volcanoyt.me</admin>
+    <hostname>radio.volcanoyt.com</hostname>
+
+	<limits>
+		<clients>100</clients>
+        <sources>10</sources>
+        <queue-size>524288</queue-size>
+        <client-timeout>30</client-timeout>
+        <header-timeout>15</header-timeout>
+        <source-timeout>10</source-timeout>
+        <!-- If enabled, this will provide a burst of data when a client 
+             first connects, thereby significantly reducing the startup 
+             time for listeners that do substantial buffering. However,
+             it also significantly increases latency between the source
+             client and listening client.  For low-latency setups, you
+             might want to disable this. -->
+        <burst-on-connect>1</burst-on-connect>
+        <!-- same as burst-on-connect, but this allows for being more
+             specific on how much to burst. Most people won't need to
+             change from the default 64k. Applies to all mountpoints  -->
+        <burst-size>65535</burst-size>
+	</limits>
+
+	<authentication>
+		<admin-user>admin</admin-user>
+		<admin-password>repo</admin-password>
+	</authentication>
+
+	<listen-socket>
+		<port>8010</port>
+	</listen-socket>
+    
+	<http-headers>
+		<header name="Access-Control-Allow-Origin" value="*" />
+	</http-headers>
+
+	<mount>
+     <mount-name>/merapi_backup1</mount-name>
+     <username>merapi</username>
+     <password>backup</password>
+     <max-listeners>10</max-listeners>
+     <fallback-mount>/merapi_backup2</fallback-mount>
+     <fallback-override>1</fallback-override>
+    </mount>	
+	
+	<mount>
+     <mount-name>/merapi_backup2</mount-name>
+     <username>merapi</username>
+     <password>backup</password>
+     <max-listeners>10</max-listeners>
+	 <fallback-mount>/merapi_backup3</fallback-mount>
+     <fallback-override>1</fallback-override>
+    </mount>	
+	
+	<mount>
+     <mount-name>/merapi_backup3</mount-name>
+     <username>merapi</username>
+     <password>backup</password>
+     <max-listeners>10</max-listeners>
+    </mount>
+	
+	<mount>
+     <mount-name>/merapi</mount-name>
+     <username>merapi</username>
+     <password>yuki</password>
+     <max-listeners>10</max-listeners>
+	 <fallback-mount>/merapi_backup1</fallback-mount>
+     <fallback-override>1</fallback-override>
+    </mount>
+	
+	<mount>
+     <mount-name>/agung</mount-name>
+     <username>agung</username>
+     <password>yuki</password>
+     <max-listeners>10</max-listeners>
+    </mount>
+
+	<fileserve>1</fileserve>
+
+	<paths>
+		<basedir>/usr/share/icecast</basedir>
+		<webroot>/usr/share/icecast/web</webroot>
+		<alias source="/" destination="/status.xsl"/>
+	</paths>
+
+</icecast>
