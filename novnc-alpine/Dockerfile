@@ -17,7 +17,7 @@ RUN addgroup $USER && adduser -G $USER -s /bin/sh -D $USER &&\
     apk --update --no-cache add \
     bash sudo wget ca-certificates supervisor unzip \
     mesa-dri-swrast xvfb x11vnc novnc xdg-utils xset \
-    ttf-dejavu xfce4 faenza-icon-theme \
+    ttf-dejavu openbox tint2 \
     xfce4-terminal thunar nano &&\
     wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub &&\
     wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.31-r0/glibc-2.31-r0.apk &&\
