@@ -1,7 +1,7 @@
 #!/bin/bash
 
-declare -a gbulid=("node-pm2-alpine" "novnc-alpine" "icecast-alpine")
-whatuse="node-pm2-alpine,novnc-alpine,icecast-alpine"
+declare -a gbulid=("node-pm2-alpine" "novnc-alpine" "icecast-alpine" "novnc-ubuntu")
+whatuse="node-pm2-alpine,novnc-alpine,icecast-alpine,novnc-ubuntu"
 
 echo "Let's build :)"
 gonline="no"
