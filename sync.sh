@@ -15,12 +15,12 @@ bulid()
 
      echo "$i...."
      cd "$i" || exit;
-     docker build -t "repo.volcanoyt.com/base:$i" -f Dockerfile .
+     docker build -t "repo.volcanoyt.com/base_$i" -f Dockerfile .
      cd ..
     
      if [[ $gonline == *"yes"* ]]; then
       echo "Start push to our server"
-      docker push repo.volcanoyt.com/base:"$i"
+      docker push repo.volcanoyt.com/base_"$i"
      fi
 
     else
@@ -37,7 +37,7 @@ push()
     if [[ $whatuse == *"$i"* ]]; then
 
      echo "$i...."
-     docker push repo.volcanoyt.com/base:"$i"
+     docker push repo.volcanoyt.com/base_"$i"
 
     else
      echo "Skip $i"
