@@ -62,10 +62,11 @@ RUN \
      --with-http_secure_link_module \
      --with-http_stub_status_module \
      --with-http_auth_request_module \
+     --with-http_realip_module \
      --with-http_v2_module && \
     make && \
     make install && \
-    apk del $FORBULID && \
+    apk update && apk del $FORBULID && \
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
 
