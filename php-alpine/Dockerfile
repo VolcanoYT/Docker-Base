@@ -6,7 +6,12 @@ ENV USER=sistem \
     UID=1001 \
     GID=1001 \
     NGEV=1.19.2 \
-    FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc"
+    FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
+    FFMPEG_VERSION=4.3.1 \
+    PKG_CONFIG_PATH=/opt/ffmpeg/lib/pkgconfig \
+    LD_LIBRARY_PATH=/opt/ffmpeg/lib \
+    PREFIX=/usr/local \
+    MAKEFLAGS="-j2"
 
 RUN \
     adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" && \
@@ -16,7 +21,7 @@ RUN \
     $FORBULID \
     pcre icu-libs zlib \
     freetype jpeg libwebp libxpm \
-    cpulimit py3-pip supervisor composer ffmpeg \
+    cpulimit py3-pip supervisor composer \
     dcron libcap && \
     pip3 install --upgrade pip && \
     docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype && \
@@ -69,6 +74,114 @@ RUN \
     apk update && apk del $FORBULID && \
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
+
+RUN set -xe \
+    && buildDeps=' \
+        autoconf \
+        automake \
+        bash \
+        binutils \
+        bzip2 \
+        cmake \
+        curl \
+        coreutils \
+        diffutils \
+        file \
+        g++ \
+        gcc \
+        gperf \
+        libtool \
+        make \
+        python3 \
+        openssl-dev \
+        tar \
+        yasm \
+        nasm \
+        zlib-dev \
+        expat-dev \
+        gnutls-dev \
+        lame-dev \
+        libvorbis-dev \
+        xvidcore-dev \
+        zlib-dev \
+        imlib2-dev \
+        x264-dev \
+        libtheora-dev \
+        bzip2-dev \
+        libvpx-dev \
+        sdl-dev \
+        libxfixes-dev \
+        libva-dev \
+        alsa-lib-dev \
+        rtmpdump-dev \
+        v4l-utils-dev \
+        yasm \
+        opus-dev \
+        x265-dev \
+        libwebp-dev \
+        ca-certificates \
+        perl \
+    ' \
+    && apk add --no-cache --virtual .ffmpeg_deps $buildDeps \
+    # Download ffmpeg
+    && DIR=/tmp/ffmpeg \
+    && mkdir -p ${DIR} \
+    && cd ${DIR} \
+    && curl -sLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2 \
+    && tar -jx --strip-components=1 -f ffmpeg-${FFMPEG_VERSION}.tar.bz2 \
+    # Compile
+    && ./configure \
+         --enable-avresample \
+         --enable-avfilter \
+         --enable-gnutls \
+         --enable-gpl \
+         --enable-libmp3lame \
+         --enable-librtmp \
+         --enable-libvorbis \
+         --enable-libvpx \
+         --enable-libxvid \
+         --enable-libx264 \
+         --enable-libx265 \
+         --enable-libtheora \
+         --enable-libv4l2 \
+         --enable-postproc \
+         --enable-pic \
+         --enable-pthreads \
+         --enable-shared \
+         --disable-stripping \
+         --disable-static \
+         --enable-vaapi \
+         --disable-debug \
+         --enable-libwebp \
+         --extra-cflags="-I${PREFIX}/include" \
+         --extra-ldflags="-L${PREFIX}/lib" \
+         --extra-libs=-ldl \
+         --prefix="${PREFIX}" \
+    && make \
+    && make install \
+    && make distclean \
+    && hash -r \
+    && cd tools \
+    && make qt-faststart \
+    && cp qt-faststart ${PREFIX}/bin \
+    && cd / \
+    && rm -rf ${DIR} \
+    # Uninstall build deps
+    && apk del autoconf \
+        automake \
+        binutils \
+        bzip2 \
+        cmake \
+        curl \
+        coreutils \
+        diffutils \
+        file \
+        g++ \
+        gcc \
+        gperf \
+        libtool \
+        make \
+        python3
 
 # Copy startup
 COPY /config/entrypoint.sh /etc/entrypoint.sh
