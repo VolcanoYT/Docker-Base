@@ -29,6 +29,25 @@ bulid()
   done
 }
 
+tes()
+{
+  echo "Start Tes Mode..."
+  for i in "${gbulid[@]}";
+  do 
+    if [[ $whatuse == *"$i"* ]]; then
+
+     bulid
+
+     if [[ $whatuse == *"novnc-alpine"* ]]; then
+      docker run --rm -it  -p 5901:5901/tcp -p 6080:6080/tcp repo.volcanoyt.com/base_novnc-alpine:latest
+     fi
+
+    else
+     echo "Skip $i"
+    fi
+  done
+}
+
 push()
 {
   echo "Start push..."
@@ -56,7 +75,7 @@ else
   fi
   
   gonline="$3"   
-  case $1 in bulid|push)
+  case $1 in bulid|push|tes)
     $1
     ;;
   esac

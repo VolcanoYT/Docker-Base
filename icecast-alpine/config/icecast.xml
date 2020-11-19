@@ -1,11 +1,11 @@
 <icecast>
 
 	<location>VolcanoYT Streaming</location>
-	<admin>me@volcanoyt.me</admin>
+	<admin>me@volcanoyt.com</admin>
     <hostname>radio.volcanoyt.com</hostname>
 
 	<limits>
-		<clients>100</clients>
+		<clients>10000</clients>
         <sources>10</sources>
         <queue-size>524288</queue-size>
         <client-timeout>30</client-timeout>
@@ -41,7 +41,7 @@
      <mount-name>/merapi_backup1</mount-name>
      <username>merapi</username>
      <password>backup</password>
-     <max-listeners>10</max-listeners>
+     <max-listeners>100</max-listeners>
      <fallback-mount>/merapi_backup2</fallback-mount>
      <fallback-override>1</fallback-override>
     </mount>	
@@ -50,7 +50,7 @@
      <mount-name>/merapi_backup2</mount-name>
      <username>merapi</username>
      <password>backup</password>
-     <max-listeners>10</max-listeners>
+     <max-listeners>100</max-listeners>
 	 <fallback-mount>/merapi_backup3</fallback-mount>
      <fallback-override>1</fallback-override>
     </mount>	
@@ -59,14 +59,14 @@
      <mount-name>/merapi_backup3</mount-name>
      <username>merapi</username>
      <password>backup</password>
-     <max-listeners>10</max-listeners>
+     <max-listeners>100</max-listeners>
     </mount>
 	
 	<mount>
      <mount-name>/merapi</mount-name>
      <username>merapi</username>
      <password>yuki</password>
-     <max-listeners>10</max-listeners>
+     <max-listeners>100</max-listeners>
 	 <fallback-mount>/merapi_backup1</fallback-mount>
      <fallback-override>1</fallback-override>
     </mount>
@@ -75,7 +75,7 @@
      <mount-name>/agung</mount-name>
      <username>agung</username>
      <password>yuki</password>
-     <max-listeners>10</max-listeners>
+     <max-listeners>100</max-listeners>
     </mount>
 
 	<fileserve>1</fileserve>

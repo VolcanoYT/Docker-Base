@@ -160,11 +160,13 @@ RUN \
 
 # LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL. Latest LAME release: v3.100 (October 2017)
 RUN \
+    apk add --no-cache subversion &&\
     DIR=/tmp/lame && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    curl -sLO https://sourceforge.net/code-snapshots/svn/l/la/lame/svn/lame-svn-r6474-trunk.zip --header "cookie: VISITOR=675b834b-420b-4acb-afbe-f6e0000abd8e; OAID=eb7e192a82138d4718de359f31af7466; _session_id=396e7aaa452cf383ef67e3544c33ec6ca337fd45881bef11c1f72562acc63e8e6fc85b5c609f2b96; sourceforge=521b81e7b37f7e31ec1b6287b0fc27359621a10agAJ9cQEoVQhfZXhwaXJlc3ECY2RhdGV0aW1lCmRhdGV0aW1lCnEDVQoH9gETAw4HAAAAhVJxBFgYAAAAcGVyc2lzdGVudF9xcy40ZmQ0YTU2YzQzcQWIVQNfaWRxBlUgMGM3MjA1Y2Q4YjNmNDg0OWE3NzQxZTdhOWY0ZmY1NDFxB1gGAAAAZGxoaXN0cQhdcQkofXEKKFUHcmVsZWFzZX1xCyhVBGRhdGVoA1UKB+QHGA8jCAAAAIVScQxVCnNmX2ZpbGVfaWRKc7D+AVUIZmlsZW5hbWVYJgAAAC9XaW5TQ1AvNS4xNy43L1dpblNDUC01LjE3LjctU2V0dXAuZXhldVUHcHJvamVjdH1xDShVCXNob3J0bmFtZVgGAAAAd2luc2NwVQVzZl9pZEpVTgEAVQRuYW1lWAYAAABXaW5TQ1B1dX1xDihVB3JlbGVhc2V9cQ8oVQRkYXRlaANVCgfdAg0IKB4AAACFUnEQVQpzZl9maWxlX2lkSrMscgBVCGZpbGVuYW1lWCYAAAAvZm9sZGVyc2l6ZS8yLjYvRm9sZGVyU2l6ZS0yLjYteDY0Lm1zaXVVB3Byb2plY3R9cREoVQlzaG9ydG5hbWVYCgAAAGZvbGRlcnNpemVVBXNmX2lkSoXxAQBVBG5hbWVYFwAAAEZvbGRlciBTaXplIGZvciBXaW5kb3dzdXVlVQNrZXlxElgkAAAANjc1YjgzNGItNDIwYi00YWNiLWFmYmUtZjZlMDAwMGFiZDhlcRNVBXByZWZzcRR9cRVVDl9hY2Nlc3NlZF90aW1lcRZHQdfgWlfWLr5VDl9jcmVhdGlvbl90aW1lcRdHQdffvTNK/Wl1Lg==" && \
-    unzip lame-svn-r6474-trunk.zip && cd lame-svn-r6474-trunk/lame && \
+    svn checkout https://svn.code.sf.net/p/lame/svn/trunk/lame lame-svn &&\
+    #curl -sLO https://sourceforge.net/code-snapshots/svn/l/la/lame/svn/lame-svn-r6474-trunk.zip --header "cookie: VISITOR=675b834b-420b-4acb-afbe-f6e0000abd8e; OAID=eb7e192a82138d4718de359f31af7466; _session_id=396e7aaa452cf383ef67e3544c33ec6ca337fd45881bef11c1f72562acc63e8e6fc85b5c609f2b96; sourceforge=521b81e7b37f7e31ec1b6287b0fc27359621a10agAJ9cQEoVQhfZXhwaXJlc3ECY2RhdGV0aW1lCmRhdGV0aW1lCnEDVQoH9gETAw4HAAAAhVJxBFgYAAAAcGVyc2lzdGVudF9xcy40ZmQ0YTU2YzQzcQWIVQNfaWRxBlUgMGM3MjA1Y2Q4YjNmNDg0OWE3NzQxZTdhOWY0ZmY1NDFxB1gGAAAAZGxoaXN0cQhdcQkofXEKKFUHcmVsZWFzZX1xCyhVBGRhdGVoA1UKB+QHGA8jCAAAAIVScQxVCnNmX2ZpbGVfaWRKc7D+AVUIZmlsZW5hbWVYJgAAAC9XaW5TQ1AvNS4xNy43L1dpblNDUC01LjE3LjctU2V0dXAuZXhldVUHcHJvamVjdH1xDShVCXNob3J0bmFtZVgGAAAAd2luc2NwVQVzZl9pZEpVTgEAVQRuYW1lWAYAAABXaW5TQ1B1dX1xDihVB3JlbGVhc2V9cQ8oVQRkYXRlaANVCgfdAg0IKB4AAACFUnEQVQpzZl9maWxlX2lkSrMscgBVCGZpbGVuYW1lWCYAAAAvZm9sZGVyc2l6ZS8yLjYvRm9sZGVyU2l6ZS0yLjYteDY0Lm1zaXVVB3Byb2plY3R9cREoVQlzaG9ydG5hbWVYCgAAAGZvbGRlcnNpemVVBXNmX2lkSoXxAQBVBG5hbWVYFwAAAEZvbGRlciBTaXplIGZvciBXaW5kb3dzdXVlVQNrZXlxElgkAAAANjc1YjgzNGItNDIwYi00YWNiLWFmYmUtZjZlMDAwMGFiZDhlcRNVBXByZWZzcRR9cRVVDl9hY2Nlc3NlZF90aW1lcRZHQdfgWlfWLr5VDl9jcmVhdGlvbl90aW1lcRdHQdffvTNK/Wl1Lg==" && \
+    cd lame-svn && \
     ./configure --prefix="${PREFIX}" --bindir="${PREFIX}/bin" --enable-shared --enable-nasm --disable-frontend && \
     make && \
     make install && \
@@ -227,8 +229,8 @@ RUN  \
     DIR=/tmp/vid.stab && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    curl -sLO https://github.com/georgmartius/vid.stab/archive/master.tar.gz && \
-    tar -zx --strip-components=1 -f master.tar.gz &&\
+    curl -sLO https://github.com/georgmartius/vid.stab/archive/v1.1.0.tar.gz && \
+    tar -zx --strip-components=1 -f v1.1.0.tar.gz &&\
     cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" . && \
     make && \
     make install && \
