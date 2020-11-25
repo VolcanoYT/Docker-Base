@@ -41,6 +41,9 @@ tes()
      if [[ $whatuse == *"novnc-alpine"* ]]; then
       docker run --rm -it  -p 5901:5901/tcp -p 6080:6080/tcp repo.volcanoyt.com/base_novnc-alpine:latest
      fi
+     if [[ $whatuse == *"novnc-ubuntu"* ]]; then
+      docker run --rm -it  -p 5901:5901/tcp -p 6080:6080/tcp repo.volcanoyt.com/base_novnc-ubuntu:latest
+     fi
 
     else
      echo "Skip $i"
