@@ -1,13 +1,24 @@
 #!/bin/bash
 
-declare -a gbulid=("node-pm2-alpine" "novnc-alpine" "icecast-alpine" "novnc-ubuntu" "php-alpine" "ffmpeg-snapshot-alpine")
-whatuse="abc"
+declare -a gbulid=("ffmpeg-snapshot-alpine" "node-pm2-alpine" "novnc-ubuntu" "icecast-alpine" "php-alpine")
+whatuse="all"
+
+tabel_point="ffmpeg-snapshot-alpine,node-pm2-alpine,novnc-ubuntu,icecast-alpine,php-alpine"
 
 echo "Let's build :)"
 gonline="no"
 
+cekif(){
+  if [[ "all" == *"$whatuse"* ]]; then
+   whatuse=$tabel_point
+  fi
+}
+
 bulid()
 {
+
+  cekif
+
   echo "Start build..."
   for i in "${gbulid[@]}";
   do 
@@ -53,6 +64,9 @@ tes()
 
 push()
 {
+
+  cekif
+  
   echo "Start push..."
   for i in "${gbulid[@]}";
   do 

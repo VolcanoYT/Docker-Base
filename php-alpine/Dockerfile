@@ -1,11 +1,11 @@
 FROM php:fpm-alpine
 
 ENV USER=sistem \
-    GRUP=nobody \
+    GRUP=sistem \
     WORKD=/var/www \
-    UID=1001 \
-    GID=1001 \
-    NGEV=1.19.3 \
+    UID=1000 \
+    GID=1000 \
+    NGEV=1.19.5 \
     FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
     PKG_CONFIG_PATH=/opt/ffmpeg/lib/pkgconfig \
     LD_LIBRARY_PATH=/opt/ffmpeg/lib \
@@ -13,7 +13,10 @@ ENV USER=sistem \
     MAKEFLAGS="-j2"
 
 RUN \
-    adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" && \
+    addgroup -g 1000 -S $GRUP &&\
+    addgroup -S cctv -g 1002 &&\ 
+    adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" &&\
+    addgroup "$USER" cctv &&\
     echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk add --no-cache \
     bash curl wget git zip unzip ca-certificates util-linux \
@@ -42,32 +45,32 @@ RUN \
     tar xzf nginx-$NGEV.tar.gz && \
     cd /tmp/nginx-$NGEV && \
     ./configure \ 
-     --prefix=/etc/nginx \
-     --sbin-path=/usr/sbin/nginx \
-     --conf-path=/etc/nginx/nginx.conf \
-     --error-log-path=/var/log/nginx/error.log \
-     --http-log-path=/var/log/nginx/access.log \
-     --pid-path=/var/run/nginx.pid \
-     --lock-path=/var/run/nginx.lock \
-     --http-client-body-temp-path=/var/cache/nginx/client_temp \
-     --http-proxy-temp-path=/var/cache/nginx/proxy_temp \
-     --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
-     --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
-     --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
-     #https://github.com/iphoting/heroku-buildpack-php-tyler/issues/19#issue-11272482
-     --user=$USER \
-     --group=$GRUP \
-     # https://www.nginx.com/resources/wiki/modules/
-     # https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/#modules_not_default
-     --with-http_flv_module \
-     --with-http_mp4_module \
-     --with-http_gunzip_module \
-     --with-http_gzip_static_module \
-     --with-http_secure_link_module \
-     --with-http_stub_status_module \
-     --with-http_auth_request_module \
-     --with-http_realip_module \
-     --with-http_v2_module && \
+    --prefix=/etc/nginx \
+    --sbin-path=/usr/sbin/nginx \
+    --conf-path=/etc/nginx/nginx.conf \
+    --error-log-path=/var/log/nginx/error.log \
+    --http-log-path=/var/log/nginx/access.log \
+    --pid-path=/var/run/nginx.pid \
+    --lock-path=/var/run/nginx.lock \
+    --http-client-body-temp-path=/var/cache/nginx/client_temp \
+    --http-proxy-temp-path=/var/cache/nginx/proxy_temp \
+    --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
+    --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
+    --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+    #https://github.com/iphoting/heroku-buildpack-php-tyler/issues/19#issue-11272482
+    --user=$USER \
+    --group=$GRUP \
+    # https://www.nginx.com/resources/wiki/modules/
+    # https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-open-source/#modules_not_default
+    --with-http_flv_module \
+    --with-http_mp4_module \
+    --with-http_gunzip_module \
+    --with-http_gzip_static_module \
+    --with-http_secure_link_module \
+    --with-http_stub_status_module \
+    --with-http_auth_request_module \
+    --with-http_realip_module \
+    --with-http_v2_module && \
     make && \
     make install && \
     apk update && apk del $FORBULID && \
