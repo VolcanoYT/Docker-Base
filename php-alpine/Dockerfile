@@ -1,23 +1,22 @@
-FROM php:fpm-alpine
+FROM php:7.4-fpm-alpine
 
 ENV USER=sistem \
     GRUP=sistem \
     WORKD=/var/www \
     UID=1000 \
     GID=1000 \
-    NGEV=1.19.5 \
+    NGEV=1.19.6 \
     FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
-    PKG_CONFIG_PATH=/opt/ffmpeg/lib/pkgconfig \
-    LD_LIBRARY_PATH=/opt/ffmpeg/lib \
-    PREFIX=/usr/local \
-    MAKEFLAGS="-j2"
+    PREFIX=/usr/local
 
 RUN \
+    sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories &&\
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&\
+    apk upgrade --update-cache --available &&\
     addgroup -g 1000 -S $GRUP &&\
     addgroup -S cctv -g 1002 &&\ 
     adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" &&\
     addgroup "$USER" cctv &&\
-    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk add --no-cache \
     bash curl wget git zip unzip ca-certificates util-linux \
     $FORBULID \
@@ -27,7 +26,7 @@ RUN \
     dcron libcap && \
     pip3 install --upgrade pip && \
     docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype && \
-    docker-php-ext-install bcmath pcntl sysvsem pdo_mysql sockets gd intl opcache && \
+    docker-php-ext-install bcmath pcntl sysvsem pdo_mysql sockets gd intl opcache exif && \
     pip3 install --no-cache-dir --upgrade streamlink && \
     mkdir -p /var/cache/nginx/ && \
     mkdir -p /var/log/nginx/ && \
@@ -88,6 +87,8 @@ RUN chmod +x /etc/entrypoint.sh
 USER $USER
 
 EXPOSE 8888
+
+RUN php -v && php -m && composer -V
 
 # Let script run after all done
 ENTRYPOINT ["sh", "/etc/entrypoint.sh"]

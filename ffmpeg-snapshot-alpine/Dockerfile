@@ -1,10 +1,8 @@
-ARG VersionFFMPEG=0.0.1
+FROM alpine:edge AS base
 
-FROM node:current-alpine AS base
+RUN sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-
-RUN  apk add --no-cache --update libgcc libstdc++ ca-certificates libcrypto1.1 libssl1.1 libgomp expat git linux-headers
+RUN apk upgrade --update-cache --available && apk add --update libgcc libstdc++ ca-certificates libcrypto1.1 libssl1.1 libgomp expat git linux-headers
 
 FROM base AS build
 
@@ -34,7 +32,7 @@ RUN buildDeps=" \
     zlib-dev \
     expat-dev \
     mercurial" && \
-    apk add --no-cache --update ${buildDeps}
+    apk add ${buildDeps}
 
 ARG  LD_LIBRARY_PATH=/opt/ffmpeg/lib
 ARG  MAKEFLAGS="-j2"
@@ -71,7 +69,9 @@ RUN \
     DIR=/tmp/x265 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    hg clone http://hg.videolan.org/x265 && cd x265/build/linux && ls && \
+    #hg clone http://hg.videolan.org/x265 && cd x265/build/linux && ls && \
+    curl -sLO https://github.com/videolan/x265/archive/master.tar.gz && \
+    tar -zx --strip-components=1 -f master.tar.gz && cd build/linux \
     sed -i "/-DEXTRA_LIB/ s/$/ -DCMAKE_INSTALL_PREFIX=\${PREFIX}/" multilib.sh && \
     sed -i "/^cmake/ s/$/ -DENABLE_CLI=OFF/" multilib.sh && \
     ./multilib.sh && \
@@ -160,7 +160,7 @@ RUN \
 
 # LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL. Latest LAME release: v3.100 (October 2017)
 RUN \
-    apk add --no-cache subversion &&\
+    apk add subversion &&\
     DIR=/tmp/lame && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -270,7 +270,7 @@ RUN \
 
 ## fontconfig https://www.freedesktop.org/wiki/Software/fontconfig/
 RUN  \
-    apk add --no-cache --update gettext-dev &&\
+    apk add gettext-dev &&\
     FONTCONFIG_VERSION=2.13.92 && \
     DIR=/tmp/fontconfig && \
     mkdir -p ${DIR} && \
@@ -463,7 +463,7 @@ RUN \
     rm -rf ${DIR}
 
 RUN \
-    apk add --no-cache --update gnutls-dev &&\
+    apk add gnutls-dev &&\
     DIR=/tmp/rtmpdump && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -543,21 +543,25 @@ RUN \
     && apk del ${buildDeps}
 
 RUN \
-    #Copy Miss
+    # Folder Copy Lib
     LIBP='/usr/local/lib/' &&\
-    cp -r /usr/lib/libintl.* ${LIBP} &&\
-    cp -r /usr/lib/libexpat.* ${LIBP} &&\
-    cp -r /usr/lib/libgomp.* ${LIBP} &&\
-    #ldd command prints shared object dependencies ffmpeg, find lib tmp in dependencies link opt/ffmpeg
+    # auto install
+    mv /usr/lib/libintl.* ${LIBP} &&\
+    mv /usr/lib/libexpat.* ${LIBP} &&\
+    mv /usr/lib/libgomp.* ${LIBP} &&\
+    #ldd command prints shared object dependencies ffmpeg, find lib tmp in dependencies link
     ldd ${PREFIX}/bin/ffmpeg | grep ${PREFIX} | cut -d ' ' -f 3 | xargs -i cp {} ${LIBP} && \
     #link all lib in usr loc? 
-    for lib in /usr/local/lib/*.so.*; do ln -s "${lib##*/}" "${lib%%.so.*}".so; done && \
+    #for lib in /usr/local/lib/*.so.*; do ln -s "${lib##*/}" "${lib%%.so.*}".so; done && \
     # Copy Tmp bin to Usr bin
-    cp -r ${PREFIX}/bin/* /usr/local/bin/ && \
-    cp -r ${PREFIX}/share/ffmpeg /usr/local/share/
+    mv ${PREFIX}/bin/* /usr/local/bin/ && \
+    mv ${PREFIX}/share/ffmpeg /usr/local/share/ &&\
+    rm -rf ${PREFIX}
 
 FROM base AS release
 ENV         LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
 CMD         ["--help"]
 ENTRYPOINT  ["ffmpeg"]
 COPY --from=build /usr/local /usr/local
+
+# RUN ffmpeg -version && echo 1
