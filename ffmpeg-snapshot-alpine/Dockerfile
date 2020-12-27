@@ -8,7 +8,8 @@ FROM base AS build
 
 WORKDIR     /tmp/workdir
 
-RUN buildDeps=" \    
+RUN buildDeps=" \
+    build-base \
     autoconf \
     automake \
     bash \
@@ -268,17 +269,44 @@ RUN \
     make install && \
     rm -rf ${DIR}
 
-## fontconfig https://www.freedesktop.org/wiki/Software/fontconfig/
+#RUN FPC_VERSION="3.2.0" &&\
+ #   FPC_ARCH="x86_64-linux" &&\
+ #   apk add binutils && \
+ #   cd /tmp && \
+ #   wget "https://downloads.sourceforge.net/project/freepascal/Linux/${FPC_VERSION}/fpc-${FPC_VERSION}-${FPC_ARCH}.tar" -O fpc.tar && \
+  #  tar xf "fpc.tar" && \
+ #   apkcd "fpc-${FPC_VERSION}-${FPC_ARCH}" && \
+ #   rm demo* doc* && \
+ #   \
+    # Workaround musl vs glibc entrypoint for `fpcmkcfg`
+ #   mkdir /lib64 && \
+ #   ln -s /lib/ld-musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 && \
+ #   \
+#    echo -e '/usr\nN\nN\nN\n' | sh ./install.sh && \
+ #   rm -r "/lib64" "/tmp/"*
+
+#RUN  \
+ #   apk add sharutils bison texinfo perl ncurses-dev libxml2-dev libunistring-dev coreutils &&\
+ #   DIR=/tmp/gettext &&\
+#    mkdir -p ${DIR} &&\
+ #   cd ${DIR} && \
+ #   git clone --recurse-submodules --depth 1 https://github.com/autotools-mirror/gettext.git ${DIR} &&\
+ #   ./autogen.sh &&\
+  #  gt_cv_func_printf_posix=yes &&\
+  #  ./configure --prefix="${PREFIX}" --enable-static --disable-java --enable-threads=posix &&\
+ #   make && \
+  #  make install && \
+ #   rm -rf ${DIR}
+
 RUN  \
     apk add gettext-dev &&\
-    FONTCONFIG_VERSION=2.13.92 && \
+    FONTCONFIG_VERSION=2.13.93 && \
     DIR=/tmp/fontconfig && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     curl -sLO https://github.com/freedesktop/fontconfig/archive/${FONTCONFIG_VERSION}.tar.gz && \
     tar -zx --strip-components=1 -f ${FONTCONFIG_VERSION}.tar.gz && \
     ./autogen.sh --prefix="${PREFIX}" --disable-static --enable-shared &&\
-    #./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make && \
     make install && \
     rm -rf ${DIR}
@@ -314,14 +342,14 @@ RUN \
 # AOMedia Video 1 (AV1) is an open, royalty-free video coding format designed for video transmissions over the Internet.
 RUN \
     DIR=/tmp/aom && \
-    git clone --branch dev --depth 1 https://aomedia.googlesource.com/aom ${DIR} ; \
-    cd ${DIR} ; \
-    rm -rf CMakeCache.txt CMakeFiles ; \
-    mkdir -p ./aom_build ; \
-    cd ./aom_build ; \
-    cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DBUILD_SHARED_LIBS=1 ..; \
-    make ; \
-    make install ; \
+    git clone --branch dev --depth 1 https://aomedia.googlesource.com/aom ${DIR} &&\
+    cd ${DIR} &&\
+    rm -rf CMakeCache.txt CMakeFiles &&\
+    mkdir -p ./aom_build &&\
+    cd ./aom_build &&\
+    cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DBUILD_SHARED_LIBS=1 .. &&\
+    make &&\
+    make install &&\
     rm -rf ${DIR}  
 
 ## libxcb (and supporting libraries) for screen capture https://xcb.freedesktop.org/
@@ -405,7 +433,7 @@ RUN \
     DIR=/tmp/libbluray && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    git clone https://code.videolan.org/videolan/libbluray.git ${DIR} --depth 1 && git submodule update --init --recursive && \
+    git clone --recurse-submodules --depth 1 https://code.videolan.org/videolan/libbluray.git ${DIR} &&\
     ./bootstrap && \
     ./configure --prefix="${PREFIX}" --disable-examples --disable-bdjava-jar --disable-static --enable-shared && \
     make && \
@@ -443,7 +471,7 @@ RUN \
     DIR=/tmp/png && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    git clone https://github.com/glennrp/libpng.git ${DIR} --depth 1 && \
+    git clone --depth 1 https://github.com/glennrp/libpng.git ${DIR} &&\
     ./configure --prefix="${PREFIX}" && \
     make check && \
     make install && \
@@ -468,7 +496,7 @@ RUN \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     #https://git.ffmpeg.org/rtmpdump.git
-    git clone https://github.com/JudgeZarbi/RTMPDump-OpenSSL-1.1.git ${DIR} --depth 1 && \
+    git clone --depth 1 https://github.com/JudgeZarbi/RTMPDump-OpenSSL-1.1.git ${DIR} &&\
     #curl -sLO https://dev.alpinelinux.org/archive/rtmpdump/rtmpdump-2.4_git20190330.tar.gz && \
     #tar -xz --strip-components=1 -f rtmpdump-2.4_git20190330.tar.gz && \
     make && \
@@ -543,19 +571,16 @@ RUN \
     && apk del ${buildDeps}
 
 RUN \
-    # Folder Copy Lib
     LIBP='/usr/local/lib/' &&\
-    # auto install
+    LIBR='/usr/lib/'&&\
+    # miss lib by auto install
     mv /usr/lib/libintl.* ${LIBP} &&\
     mv /usr/lib/libexpat.* ${LIBP} &&\
     mv /usr/lib/libgomp.* ${LIBP} &&\
-    #ldd command prints shared object dependencies ffmpeg, find lib tmp in dependencies link
+    # copy all lib
     ldd ${PREFIX}/bin/ffmpeg | grep ${PREFIX} | cut -d ' ' -f 3 | xargs -i cp {} ${LIBP} && \
-    #link all lib in usr loc? 
-    #for lib in /usr/local/lib/*.so.*; do ln -s "${lib##*/}" "${lib%%.so.*}".so; done && \
-    # Copy Tmp bin to Usr bin
-    mv ${PREFIX}/bin/* /usr/local/bin/ && \
-    mv ${PREFIX}/share/ffmpeg /usr/local/share/ &&\
+    mv ${PREFIX}/bin/ffmpeg /usr/local/bin/ && \
+    # remove tmp
     rm -rf ${PREFIX}
 
 FROM base AS release
@@ -564,4 +589,4 @@ CMD         ["--help"]
 ENTRYPOINT  ["ffmpeg"]
 COPY --from=build /usr/local /usr/local
 
-# RUN ffmpeg -version && echo 1
+#RUN ffmpeg -version && echo 2
