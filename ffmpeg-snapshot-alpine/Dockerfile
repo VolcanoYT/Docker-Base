@@ -1,42 +1,57 @@
 FROM alpine:edge AS base
 
 RUN sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-
-RUN apk upgrade --update-cache --available && apk add --update libgcc libstdc++ ca-certificates libcrypto1.1 libssl1.1 libgomp expat git linux-headers
+RUN apk upgrade --update-cache --available && apk add --update \
+    # Protocol
+    ca-certificates libcrypto1.1 libssl1.1 \ 
+    # Basic Linux
+    git bash bzip2 zlib curl tar expat linux-headers util-linux coreutils python3 \
+    # v2
+    libgcc libstdc++ gobject-introspection gettext gnutls fftw lcms2 orc\
+    # lib image
+    libexif giflib librsvg libheif libimagequant libjpeg-turbo tiff
 
 FROM base AS build
 
-WORKDIR     /tmp/workdir
+WORKDIR /tmp/workdir
 
 RUN buildDeps=" \
     build-base \
     autoconf \
     automake \
-    bash \
     binutils \
-    bzip2 \
     cmake \
-    curl \
-    coreutils \
+    libgomp \
     diffutils \
     file \
     g++ \
     gcc \
+    gtk-doc\
     gperf \
     libtool \
-    make \
-    python3 \
-    openssl-dev \
-    tar \
+    make \  
     yasm \
     nasm \
+    mercurial \
+    subversion \
+    openssl-dev \
     zlib-dev \
-    expat-dev \
-    mercurial" && \
+    expat-dev \    
+    gettext-dev \
+    gnutls-dev \
+    fftw-dev \
+    giflib-dev \
+    lcms2-dev \
+    libexif-dev \
+    libjpeg-turbo-dev \
+    orc-dev \
+    tiff-dev \
+    libheif-dev \
+    gobject-introspection-dev \
+    libimagequant-dev \
+    librsvg-dev" && \
     apk add ${buildDeps}
 
-ARG  LD_LIBRARY_PATH=/opt/ffmpeg/lib
-ARG  MAKEFLAGS="-j2"
 ARG  PKG_CONFIG_PATH="/opt/ffmpeg/share/pkgconfig:/opt/ffmpeg/lib/pkgconfig:/opt/ffmpeg/lib64/pkgconfig"
 ARG  PREFIX=/opt/ffmpeg
 ARG  LD_LIBRARY_PATH="/opt/ffmpeg/lib:/opt/ffmpeg/lib64"
@@ -161,7 +176,6 @@ RUN \
 
 # LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL. Latest LAME release: v3.100 (October 2017)
 RUN \
-    apk add subversion &&\
     DIR=/tmp/lame && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -271,7 +285,6 @@ RUN \
 
 #RUN FPC_VERSION="3.2.0" &&\
  #   FPC_ARCH="x86_64-linux" &&\
- #   apk add binutils && \
  #   cd /tmp && \
  #   wget "https://downloads.sourceforge.net/project/freepascal/Linux/${FPC_VERSION}/fpc-${FPC_VERSION}-${FPC_ARCH}.tar" -O fpc.tar && \
   #  tar xf "fpc.tar" && \
@@ -286,7 +299,6 @@ RUN \
  #   rm -r "/lib64" "/tmp/"*
 
 #RUN  \
- #   apk add sharutils bison texinfo perl ncurses-dev libxml2-dev libunistring-dev coreutils &&\
  #   DIR=/tmp/gettext &&\
 #    mkdir -p ${DIR} &&\
  #   cd ${DIR} && \
@@ -299,7 +311,6 @@ RUN \
  #   rm -rf ${DIR}
 
 RUN  \
-    apk add gettext-dev &&\
     FONTCONFIG_VERSION=2.13.93 && \
     DIR=/tmp/fontconfig && \
     mkdir -p ${DIR} && \
@@ -491,7 +502,6 @@ RUN \
     rm -rf ${DIR}
 
 RUN \
-    apk add gnutls-dev &&\
     DIR=/tmp/rtmpdump && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -501,6 +511,17 @@ RUN \
     #tar -xz --strip-components=1 -f rtmpdump-2.4_git20190330.tar.gz && \
     make && \
     make -j1 prefix="${PREFIX}" install && \
+    rm -rf ${DIR}
+
+RUN \
+    DIR=/tmp/libvips && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    git clone --depth 1 https://github.com/libvips/libvips.git ${DIR} &&\
+    ./autogen.sh &&\
+    ./configure  --prefix="${PREFIX}" --enable-debug=no --without-gsf &&\
+    make && \
+    make install && \
     rm -rf ${DIR}
 
 # ffmpeg.org
@@ -571,22 +592,13 @@ RUN \
     && apk del ${buildDeps}
 
 RUN \
-    LIBP='/usr/local/lib/' &&\
-    LIBR='/usr/lib/'&&\
-    # miss lib by auto install
-    mv /usr/lib/libintl.* ${LIBP} &&\
-    mv /usr/lib/libexpat.* ${LIBP} &&\
-    mv /usr/lib/libgomp.* ${LIBP} &&\
-    # copy all lib
-    ldd ${PREFIX}/bin/ffmpeg | grep ${PREFIX} | cut -d ' ' -f 3 | xargs -i cp {} ${LIBP} && \
-    mv ${PREFIX}/bin/ffmpeg /usr/local/bin/ && \
-    # remove tmp
-    rm -rf ${PREFIX}
+    mv /usr/local/lib/libx265.*  ${PREFIX}/lib &&\
+    mv -vn /usr/lib/*            ${PREFIX}/lib
 
 FROM base AS release
 ENV         LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
 CMD         ["--help"]
 ENTRYPOINT  ["ffmpeg"]
-COPY --from=build /usr/local /usr/local
+COPY --from=build /opt/ffmpeg /usr/local
 
-#RUN ffmpeg -version && echo 2
+RUN ffmpeg -version && echo 1

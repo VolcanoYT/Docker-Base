@@ -77,7 +77,7 @@ RUN \
     rm -rf /var/cache/apk/*
 
 # Copy ffmpeg (THIS BAD?)
-COPY --from=repo.volcanoyt.com/base_ffmpeg-snapshot-alpine:latest /usr/local /usr/local
+#COPY --from=repo.volcanoyt.com/base_ffmpeg-snapshot-alpine:latest /usr/local /usr/local
 
 # Copy startup
 COPY /config/entrypoint.sh /etc/entrypoint.sh
