@@ -1,25 +1,25 @@
-FROM alpine:edge AS base
+FROM alpine:3.12
 
-RUN sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN apk upgrade --update-cache --available && apk add --update \
+ENV  LD_LIBRARY_PATH=/usr/lib:/usr/lib64 \
+     PREFIX=/usr \
+     PKG_CONFIG_PATH="/usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib64/pkgconfig" \
+     tesdemo=0
+
+RUN apk upgrade --update-cache --available && apk add \
     # Protocol
     ca-certificates libcrypto1.1 libssl1.1 \ 
     # Basic Linux
     git bash bzip2 zlib curl tar expat linux-headers util-linux coreutils python3 \
     # v2
-    libgcc libstdc++ gobject-introspection gettext gnutls fftw lcms2 orc\
+    libgcc libstdc++ gobject-introspection gettext gnutls fftw lcms2 orc \
     # lib image
-    libexif giflib librsvg libheif libimagequant libjpeg-turbo tiff
-
-FROM base AS build
-
-WORKDIR /tmp/workdir
-
-RUN buildDeps=" \
+    libexif giflib librsvg libimagequant libjpeg-turbo tiff &&\
+    buildDeps=" \
     build-base \
     autoconf \
     automake \
     binutils \
+    binutils-dev \
     cmake \
     libgomp \
     diffutils \
@@ -46,15 +46,10 @@ RUN buildDeps=" \
     libjpeg-turbo-dev \
     orc-dev \
     tiff-dev \
-    libheif-dev \
     gobject-introspection-dev \
     libimagequant-dev \
     librsvg-dev" && \
     apk add ${buildDeps}
-
-ARG  PKG_CONFIG_PATH="/opt/ffmpeg/share/pkgconfig:/opt/ffmpeg/lib/pkgconfig:/opt/ffmpeg/lib64/pkgconfig"
-ARG  PREFIX=/opt/ffmpeg
-ARG  LD_LIBRARY_PATH="/opt/ffmpeg/lib:/opt/ffmpeg/lib64"
 
 # OpenCORE Framework implementation of Adaptive Multi Rate Narrowband and Wideband (AMR-NB and AMR-WB) speech codec. (TODO: need update)
 RUN \
@@ -85,10 +80,9 @@ RUN \
     DIR=/tmp/x265 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    #hg clone http://hg.videolan.org/x265 && cd x265/build/linux && ls && \
     curl -sLO https://github.com/videolan/x265/archive/master.tar.gz && \
     tar -zx --strip-components=1 -f master.tar.gz && cd build/linux \
-    sed -i "/-DEXTRA_LIB/ s/$/ -DCMAKE_INSTALL_PREFIX=\${PREFIX}/" multilib.sh && \
+    sed -i "/-DEXTRA_LIB/ s/$/ -DCMAKE_INSTALL_PREFIX=\/${PREFIX}\/" multilib.sh && \
     sed -i "/^cmake/ s/$/ -DENABLE_CLI=OFF/" multilib.sh && \
     ./multilib.sh && \
     make -C 8bit install && \
@@ -162,14 +156,13 @@ RUN \
 
 # WebP is a modern image format that provides superior lossless and lossy compression for images on the web.
 RUN \
-    DIR=/tmp/vebp && \
+    DIR=/tmp/webp && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     curl -sL https://github.com/webmproject/libwebp/archive/master.tar.gz | \
     tar -zx --strip-components=1 && \
-    # When building from git sources, you will need to run autogen.sh to generate configure script.
     ./autogen.sh &&\
-    ./configure --prefix="${PREFIX}" --enable-shared  && \
+    ./configure --prefix="${PREFIX}" --enable-everything && \
     make && \
     make install && \
     rm -rf ${DIR}
@@ -180,7 +173,6 @@ RUN \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     svn checkout https://svn.code.sf.net/p/lame/svn/trunk/lame lame-svn &&\
-    #curl -sLO https://sourceforge.net/code-snapshots/svn/l/la/lame/svn/lame-svn-r6474-trunk.zip --header "cookie: VISITOR=675b834b-420b-4acb-afbe-f6e0000abd8e; OAID=eb7e192a82138d4718de359f31af7466; _session_id=396e7aaa452cf383ef67e3544c33ec6ca337fd45881bef11c1f72562acc63e8e6fc85b5c609f2b96; sourceforge=521b81e7b37f7e31ec1b6287b0fc27359621a10agAJ9cQEoVQhfZXhwaXJlc3ECY2RhdGV0aW1lCmRhdGV0aW1lCnEDVQoH9gETAw4HAAAAhVJxBFgYAAAAcGVyc2lzdGVudF9xcy40ZmQ0YTU2YzQzcQWIVQNfaWRxBlUgMGM3MjA1Y2Q4YjNmNDg0OWE3NzQxZTdhOWY0ZmY1NDFxB1gGAAAAZGxoaXN0cQhdcQkofXEKKFUHcmVsZWFzZX1xCyhVBGRhdGVoA1UKB+QHGA8jCAAAAIVScQxVCnNmX2ZpbGVfaWRKc7D+AVUIZmlsZW5hbWVYJgAAAC9XaW5TQ1AvNS4xNy43L1dpblNDUC01LjE3LjctU2V0dXAuZXhldVUHcHJvamVjdH1xDShVCXNob3J0bmFtZVgGAAAAd2luc2NwVQVzZl9pZEpVTgEAVQRuYW1lWAYAAABXaW5TQ1B1dX1xDihVB3JlbGVhc2V9cQ8oVQRkYXRlaANVCgfdAg0IKB4AAACFUnEQVQpzZl9maWxlX2lkSrMscgBVCGZpbGVuYW1lWCYAAAAvZm9sZGVyc2l6ZS8yLjYvRm9sZGVyU2l6ZS0yLjYteDY0Lm1zaXVVB3Byb2plY3R9cREoVQlzaG9ydG5hbWVYCgAAAGZvbGRlcnNpemVVBXNmX2lkSoXxAQBVBG5hbWVYFwAAAEZvbGRlciBTaXplIGZvciBXaW5kb3dzdXVlVQNrZXlxElgkAAAANjc1YjgzNGItNDIwYi00YWNiLWFmYmUtZjZlMDAwMGFiZDhlcRNVBXByZWZzcRR9cRVVDl9hY2Nlc3NlZF90aW1lcRZHQdfgWlfWLr5VDl9jcmVhdGlvbl90aW1lcRdHQdffvTNK/Wl1Lg==" && \
     cd lame-svn && \
     ./configure --prefix="${PREFIX}" --bindir="${PREFIX}/bin" --enable-shared --enable-nasm --disable-frontend && \
     make && \
@@ -257,10 +249,7 @@ RUN  \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     curl -sLO https://github.com/fribidi/fribidi/archive/master.tar.gz && \
-    #echo ${FRIBIDI_SHA256SUM} | sha256sum --check && \
     tar -zx --strip-components=1 -f master.tar.gz && \
-    #sed -i 's/^SUBDIRS =.*/SUBDIRS=gen.tab charset lib bin/' Makefile.am && \
-    #./bootstrap --no-config --auto && \
     ./autogen.sh &&\
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make -j1 && \
@@ -269,46 +258,15 @@ RUN  \
 
 ## libxml2 - for libbluray
 RUN \
-    #LIBXML2_VERSION=2.9.10 &&\
     DIR=/tmp/libxml2 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    #curl -sLO https://gitlab.gnome.org/GNOME/libxml2/-/archive/v${LIBXML2_VERSION}/libxml2-v${LIBXML2_VERSION}.tar.gz && \
     curl -sLO https://gitlab.gnome.org/GNOME/libxml2/-/archive/master/libxml2-master.tar.gz && \
-    #echo ${LIBXML2_SHA256SUM} | sha256sum --check && \
     tar -xz --strip-components=1 -f libxml2-master.tar.gz && \
-    #tar -xz --strip-components=1 -f libxml2-v${LIBXML2_VERSION}.tar.gz && \
     ./autogen.sh --prefix="${PREFIX}" --with-ftp=no --with-http=no --with-python=no && \
     make && \
     make install && \
     rm -rf ${DIR}
-
-#RUN FPC_VERSION="3.2.0" &&\
- #   FPC_ARCH="x86_64-linux" &&\
- #   cd /tmp && \
- #   wget "https://downloads.sourceforge.net/project/freepascal/Linux/${FPC_VERSION}/fpc-${FPC_VERSION}-${FPC_ARCH}.tar" -O fpc.tar && \
-  #  tar xf "fpc.tar" && \
- #   apkcd "fpc-${FPC_VERSION}-${FPC_ARCH}" && \
- #   rm demo* doc* && \
- #   \
-    # Workaround musl vs glibc entrypoint for `fpcmkcfg`
- #   mkdir /lib64 && \
- #   ln -s /lib/ld-musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 && \
- #   \
-#    echo -e '/usr\nN\nN\nN\n' | sh ./install.sh && \
- #   rm -r "/lib64" "/tmp/"*
-
-#RUN  \
- #   DIR=/tmp/gettext &&\
-#    mkdir -p ${DIR} &&\
- #   cd ${DIR} && \
- #   git clone --recurse-submodules --depth 1 https://github.com/autotools-mirror/gettext.git ${DIR} &&\
- #   ./autogen.sh &&\
-  #  gt_cv_func_printf_posix=yes &&\
-  #  ./configure --prefix="${PREFIX}" --enable-static --disable-java --enable-threads=posix &&\
- #   make && \
-  #  make install && \
- #   rm -rf ${DIR}
 
 RUN  \
     FONTCONFIG_VERSION=2.13.93 && \
@@ -381,7 +339,6 @@ RUN \
     DIR=/tmp/xproto && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    #         https://www.x.org/archive/individual/proto/xorgproto-2020.1.tar.gz
     curl -sLO https://www.x.org/archive/individual/proto/xorgproto-${XPROTO_VERSION}.tar.gz && \
     tar -zx --strip-components=1 -f xorgproto-${XPROTO_VERSION}.tar.gz && \
     ./configure --srcdir=${DIR} --prefix="${PREFIX}" && \
@@ -472,7 +429,18 @@ RUN \
     cd ${DIR} && \
     curl -sLO https://github.com/Haivision/srt/archive/master.tar.gz && \
     tar -zx --strip-components=1 -f master.tar.gz &&\
-    cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" . && \
+    cmake \
+     -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+     #-DCMAKE_INSTALL_LIBDIR=lib \
+     -DCMAKE_BUILD_TYPE=None \
+     #-DCMAKE_C_FLAGS="$CFLAGS" \
+     -DENABLE_UNITTESTS=ON \
+     -DENABLE_TESTING=ON \
+     #-DENABLE_STATIC=OFF \
+     -DCMAKE_SYSTEM_NAME=Linux \
+     -DCMAKE_HOST_SYSTEM_NAME=Linux \
+    . && \
+    #ls && configure --prefix="${PREFIX}" && \
     make && \
     make install && \
     rm -rf ${DIR}
@@ -483,8 +451,9 @@ RUN \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     git clone --depth 1 https://github.com/glennrp/libpng.git ${DIR} &&\
+    #./autogen.sh && \
     ./configure --prefix="${PREFIX}" && \
-    make check && \
+    make && \
     make install && \
     rm -rf ${DIR}
 
@@ -501,31 +470,32 @@ RUN \
     make install && \
     rm -rf ${DIR}
 
+# RTMPDump
 RUN \
     DIR=/tmp/rtmpdump && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
-    #https://git.ffmpeg.org/rtmpdump.git
     git clone --depth 1 https://github.com/JudgeZarbi/RTMPDump-OpenSSL-1.1.git ${DIR} &&\
-    #curl -sLO https://dev.alpinelinux.org/archive/rtmpdump/rtmpdump-2.4_git20190330.tar.gz && \
-    #tar -xz --strip-components=1 -f rtmpdump-2.4_git20190330.tar.gz && \
     make && \
     make -j1 prefix="${PREFIX}" install && \
     rm -rf ${DIR}
 
+# libvips
 RUN \
     DIR=/tmp/libvips && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     git clone --depth 1 https://github.com/libvips/libvips.git ${DIR} &&\
     ./autogen.sh &&\
-    ./configure  --prefix="${PREFIX}" --enable-debug=no --without-gsf &&\
+    ./configure --prefix="${PREFIX}" --enable-debug=no --without-gsf --with-imagemagick --with-webp &&\
     make && \
     make install && \
     rm -rf ${DIR}
 
 # ffmpeg.org
 RUN \
+    #apk del x265 x265-dev &&\
+    #mv /usr/local/lib/libx265.*  ${PREFIX}/lib &&\
     # Download ffmpeg
     FFMPEG_VERSION=snapshot && \
     DIR=/tmp/ffmpeg \
@@ -565,8 +535,7 @@ RUN \
     --enable-version3 \
     --enable-libbluray \
     --enable-libzmq \
-    --extra-libs=-ldl \
-    --prefix="${PREFIX}" \
+    --extra-libs=-ldl \    
     --enable-libopenjpeg \
     --enable-libkvazaar \
     --enable-libaom \
@@ -576,6 +545,7 @@ RUN \
     --enable-librtmp \
     --enable-protocol=file \
     --enable-protocol=rtmp \
+    --prefix="${PREFIX}" \
     --extra-cflags="-I${PREFIX}/include" \
     --extra-ldflags="-L${PREFIX}/lib"\
     && make \
@@ -586,19 +556,17 @@ RUN \
     && cd tools \
     && make qt-faststart \
     && cp qt-faststart ${PREFIX}/bin \
-    && cd / \
-    && rm -rf ${DIR} \
-    # Uninstall build deps
-    && apk del ${buildDeps}
+    && rm -rf ${DIR}
 
 RUN \
-    mv /usr/local/lib/libx265.*  ${PREFIX}/lib &&\
-    mv -vn /usr/lib/*            ${PREFIX}/lib
+    apk add python3 py3-pycryptodome py3-pycountry py3-requests py3-pysocks py3-websocket-client rtmpdump \
+    py3-setuptools &&\
+    DIR=/tmp/streamlink && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    git clone --depth 1 https://github.com/streamlink/streamlink.git ${DIR} &&\
+    python3 setup.py install && \
+    rm -rf ${DIR}
 
-FROM base AS release
-ENV         LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
 CMD         ["--help"]
 ENTRYPOINT  ["ffmpeg"]
-COPY --from=build /opt/ffmpeg /usr/local
-
-RUN ffmpeg -version && echo 1

@@ -22,7 +22,7 @@ RUN \
     $FORBULID \
     pcre icu-libs zlib \
     freetype jpeg libwebp libxpm \
-    cpulimit py3-pip supervisor composer \
+    cpulimit py3-pip supervisor composer ffmpeg \
     dcron libcap && \
     pip3 install --upgrade pip && \
     docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype && \
@@ -77,7 +77,7 @@ RUN \
     rm -rf /var/cache/apk/*
 
 # Copy ffmpeg (THIS BAD?)
-#COPY --from=repo.volcanoyt.com/base_ffmpeg-snapshot-alpine:latest /usr/local /usr/local
+#COPY --from=jrottenberg/ffmpeg:snapshot-alpine /usr/local /usr/local
 
 # Copy startup
 COPY /config/entrypoint.sh /etc/entrypoint.sh
@@ -88,7 +88,7 @@ USER $USER
 
 EXPOSE 8888
 
-RUN php -v && php -m && composer -V
+# RUN php -v && php -m && composer -V
 
 # Let script run after all done
 ENTRYPOINT ["sh", "/etc/entrypoint.sh"]
