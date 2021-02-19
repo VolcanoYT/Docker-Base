@@ -3,9 +3,9 @@ FROM alpine:3.12
 ENV  LD_LIBRARY_PATH=/usr/lib:/usr/lib64 \
      PREFIX=/usr \
      PKG_CONFIG_PATH="/usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib64/pkgconfig" \
-     tesdemo=0
+     tesdemo=1
 
-RUN apk upgrade --update-cache --available && apk add \
+RUN apk --no-cache add \
     # Protocol
     ca-certificates libcrypto1.1 libssl1.1 \ 
     # Basic Linux
@@ -51,8 +51,8 @@ RUN apk upgrade --update-cache --available && apk add \
     librsvg-dev" && \
     apk add ${buildDeps}
 
-# OpenCORE Framework implementation of Adaptive Multi Rate Narrowband and Wideband (AMR-NB and AMR-WB) speech codec. (TODO: need update)
 RUN \
+    # OpenCORE Framework implementation of Adaptive Multi Rate Narrowband and Wideband (AMR-NB and AMR-WB) speech codec. (TODO: need update)
     DIR=/tmp/opencore-amr && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -61,10 +61,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-shared  && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# x264 is a free software library and application for encoding video streams into the H.264/MPEG-4 AVC compression format
-RUN \
+    rm -rf ${DIR} && \
+    # x264 is a free software library and application for encoding video streams into the H.264/MPEG-4 AVC compression format
     DIR=/tmp/x264 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -73,10 +71,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-shared --enable-pic --disable-cli && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# x265 is a library for encoding video into the High Efficiency Video Coding (HEVC/H. 265) video compression format that was developed and standardized by the ISO/IEC MPEG and ITU-T VCEG.
-RUN \
+    rm -rf ${DIR} && \
+    # x265 is a library for encoding video into the High Efficiency Video Coding (HEVC/H. 265) video compression format that was developed and standardized by the ISO/IEC MPEG and ITU-T VCEG.
     DIR=/tmp/x265 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -86,10 +82,8 @@ RUN \
     sed -i "/^cmake/ s/$/ -DENABLE_CLI=OFF/" multilib.sh && \
     ./multilib.sh && \
     make -C 8bit install && \
-    rm -rf ${DIR}
-
-# Ogg project codecs use the Ogg bitstream format to arrange the raw, compressed bitstream into a more robust, useful form. 
-RUN \
+    rm -rf ${DIR} &&\
+    # Ogg project codecs use the Ogg bitstream format to arrange the raw, compressed bitstream into a more robust, useful form.
     DIR=/tmp/ogg && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -99,10 +93,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-shared  && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# Opus adalah sebuah format koding audio kualitas rendah yang dikembangkan oleh Internet Engineering Task Force (IETF) yang sangat cocok digunakan untuk aplikasi real-time interaktif dalam jaringan Internet.
-RUN \
+    rm -rf ${DIR} && \
+    # Opus adalah sebuah format koding audio kualitas rendah yang dikembangkan oleh Internet Engineering Task Force (IETF) yang sangat cocok digunakan untuk aplikasi real-time interaktif dalam jaringan Internet.
     DIR=/tmp/opus && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -113,10 +105,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# Vorbis is a general purpose audio and music encoding format contemporary to MPEG-4's AAC and TwinVQ, the next generation beyond MPEG audio layer 3.
-RUN \
+    rm -rf ${DIR} &&\
+    # Vorbis is a general purpose audio and music encoding format contemporary to MPEG-4's AAC and TwinVQ, the next generation beyond MPEG audio layer 3.
     DIR=/tmp/vorbis && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -126,10 +116,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --with-ogg="${PREFIX}" --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# Theora was Xiph.Org's first publicly released video codec, intended for use within the Foundation's Ogg multimedia streaming system. Theora is derived directly from On2's VP3 codec, adds new features while allowing it a longer useful lifetime.
-RUN \
+    rm -rf ${DIR} &&\
+    # Theora was Xiph.Org's first publicly released video codec, intended for use within the Foundation's Ogg multimedia streaming system. Theora is derived directly from On2's VP3 codec, adds new features while allowing it a longer useful lifetime.
     DIR=/tmp/theora && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -139,10 +127,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --with-ogg="${PREFIX}" --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# WebM VP8/VP9 Codec SDK
-RUN \
+    rm -rf ${DIR} &&\
+    # WebM VP8/VP9 Codec SDK
     DIR=/tmp/vpx && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -152,10 +138,8 @@ RUN \
     --disable-debug --disable-examples --disable-docs --disable-install-bins  && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# WebP is a modern image format that provides superior lossless and lossy compression for images on the web.
-RUN \
+    rm -rf ${DIR} &&\
+    # WebP is a modern image format that provides superior lossless and lossy compression for images on the web.
     DIR=/tmp/webp && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -165,10 +149,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-everything && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL. Latest LAME release: v3.100 (October 2017)
-RUN \
+    rm -rf ${DIR} &&\
+    # LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL. Latest LAME release: v3.100 (October 2017)
     DIR=/tmp/lame && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -177,10 +159,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --bindir="${PREFIX}/bin" --enable-shared --enable-nasm --disable-frontend && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-### xvid https://www.xvid.com/
-RUN \
+    rm -rf ${DIR} && \
+    # xvid https://www.xvid.com/
     XVID_VERSION=1.3.7 &&\
     DIR=/tmp/xvid && \
     mkdir -p ${DIR} && \
@@ -191,10 +171,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --bindir="${PREFIX}/bin" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# Fraunhofer FDK AAC is an open-source software library for encoding and decoding Advanced Audio Coding (AAC) format audio
-RUN \
+    rm -rf ${DIR} && \
+    # Fraunhofer FDK AAC is an open-source software library for encoding and decoding Advanced Audio Coding (AAC) format audio
     DIR=/tmp/fdk-aac && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -204,10 +182,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-shared --datadir="${DIR}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-## openjpeg https://github.com/uclouvain/openjpeg
-RUN \
+    rm -rf ${DIR} && \
+    # openjpeg https://github.com/uclouvain/openjpeg
     DIR=/tmp/openjpeg && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -216,10 +192,8 @@ RUN \
     cmake -DBUILD_THIRDPARTY:BOOL=ON -DCMAKE_INSTALL_PREFIX="${PREFIX}" . && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-## freetype https://www.freetype.org/
-RUN  \
+    rm -rf ${DIR} && \
+    # freetype https://www.freetype.org/
     DIR=/tmp/freetype &&\
     mkdir -p ${DIR} &&\
     cd ${DIR} && \
@@ -229,10 +203,8 @@ RUN  \
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# Vidstab is a video stabilization library which can be plugged-in with Ffmpeg and Transcode.
-RUN  \
+    rm -rf ${DIR} &&\
+    # Vidstab is a video stabilization library which can be plugged-in with Ffmpeg and Transcode.
     DIR=/tmp/vid.stab && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -241,10 +213,8 @@ RUN  \
     cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" . && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-## fridibi https://www.fribidi.org/
-RUN  \
+    rm -rf ${DIR} &&\
+    # fridibi https://www.fribidi.org/
     DIR=/tmp/fribidi && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -254,10 +224,8 @@ RUN  \
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make -j1 && \
     make install && \
-    rm -rf ${DIR}
-
-## libxml2 - for libbluray
-RUN \
+    rm -rf ${DIR} &&\
+    # libxml2 - for libbluray
     DIR=/tmp/libxml2 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -266,9 +234,8 @@ RUN \
     ./autogen.sh --prefix="${PREFIX}" --with-ftp=no --with-http=no --with-python=no && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-RUN  \
+    rm -rf ${DIR} && \
+    # FONTCONFIG
     FONTCONFIG_VERSION=2.13.93 && \
     DIR=/tmp/fontconfig && \
     mkdir -p ${DIR} && \
@@ -278,25 +245,21 @@ RUN  \
     ./autogen.sh --prefix="${PREFIX}" --disable-static --enable-shared &&\
     make && \
     make install && \
-    rm -rf ${DIR}
-
-## libass https://github.com/libass/libass
-RUN  \
+    rm -rf ${DIR} &&\
+    # libass https://github.com/libass/libass
     LIBASS_VERSION=0.13.7 && \
     DIR=/tmp/libass && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     curl -sLO https://github.com/libass/libass/archive/${LIBASS_VERSION}.tar.gz && \
-    #echo ${LIBASS_SHA256SUM} | sha256sum --check && \
+    # echo ${LIBASS_SHA256SUM} | sha256sum --check && \
     tar -zx --strip-components=1 -f ${LIBASS_VERSION}.tar.gz && \
     ./autogen.sh && \
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# An open-source HEVC encoder
-RUN \
+    rm -rf ${DIR} && \
+    # An open-source HEVC encoder
     DIR=/tmp/kvazaar && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -306,23 +269,20 @@ RUN \
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# AOMedia Video 1 (AV1) is an open, royalty-free video coding format designed for video transmissions over the Internet.
-RUN \
+    rm -rf ${DIR} && \
+    # AOMedia Video 1 (AV1) is an open, royalty-free video coding format designed for video transmissions over the Internet.
     DIR=/tmp/aom && \
-    git clone --branch dev --depth 1 https://aomedia.googlesource.com/aom ${DIR} &&\
+    mkdir -p ${DIR} && \
     cd ${DIR} &&\
+    git clone --branch dev --depth 1 https://aomedia.googlesource.com/aom ${DIR} &&\    
     rm -rf CMakeCache.txt CMakeFiles &&\
     mkdir -p ./aom_build &&\
     cd ./aom_build &&\
     cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DBUILD_SHARED_LIBS=1 .. &&\
     make &&\
     make install &&\
-    rm -rf ${DIR}  
-
-## libxcb (and supporting libraries) for screen capture https://xcb.freedesktop.org/
-RUN \
+    rm -rf ${DIR} &&\
+    # libxcb (and supporting libraries) for screen capture https://xcb.freedesktop.org/
     XORG_MACROS_VERSION=1.19.2 && \
     DIR=/tmp/xorg-macros && \
     mkdir -p ${DIR} && \
@@ -332,9 +292,8 @@ RUN \
     ./configure --srcdir=${DIR} --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-RUN \
+    rm -rf ${DIR} && \
+    # XPROTO
     XPROTO_VERSION=2020.1 &&\
     DIR=/tmp/xproto && \
     mkdir -p ${DIR} && \
@@ -344,9 +303,8 @@ RUN \
     ./configure --srcdir=${DIR} --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-RUN \
+    rm -rf ${DIR} && \
+    # XAU
     XAU_VERSION=1.0.9 &&\
     DIR=/tmp/libXau && \
     mkdir -p ${DIR} && \
@@ -356,9 +314,8 @@ RUN \
     ./configure --srcdir=${DIR} --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-RUN \
+    rm -rf ${DIR} && \
+    # LIBPTHREAD
     LIBPTHREAD_STUBS_VERSION=0.4 &&\
     DIR=/tmp/libpthread-stubs && \
     mkdir -p ${DIR} && \
@@ -368,9 +325,8 @@ RUN \
     ./configure --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-RUN \
+    rm -rf ${DIR} && \
+    # XCBPROTO
     XCBPROTO_VERSION=1.14 &&\
     DIR=/tmp/libxcb-proto && \
     mkdir -p ${DIR} && \
@@ -381,9 +337,8 @@ RUN \
     ./configure --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-RUN \
+    rm -rf ${DIR} && \
+    # LIBXCB
     LIBXCB_VERSION=1.14 &&\
     DIR=/tmp/libxcb && \
     mkdir -p ${DIR} && \
@@ -394,10 +349,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-## libbluray - Requires libxml, freetype, and fontconfig
-RUN \
+    rm -rf ${DIR} && \
+    # libbluray - Requires libxml, freetype, and fontconfig
     DIR=/tmp/libbluray && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -406,10 +359,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --disable-examples --disable-bdjava-jar --disable-static --enable-shared && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# ZeroMQ lightweight messaging kernel is a library which extends the standard socket interfaces with features traditionally provided by specialised messaging middleware products.
-RUN \
+    rm -rf ${DIR} && \
+    # ZeroMQ lightweight messaging kernel is a library which extends the standard socket interfaces with features traditionally provided by specialised messaging middleware products.
     DIR=/tmp/libzmq && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -420,10 +371,8 @@ RUN \
     make && \
     make check && \
     make install && \
-    rm -rf ${DIR}
-
-# Secure Reliable Transport (SRT) is an open source transport technology that optimizes streaming performance across unpredictable networks, such as the Internet.
-RUN \
+    rm -rf ${DIR} &&\
+    # Secure Reliable Transport (SRT) is an open source transport technology that optimizes streaming performance across unpredictable networks, such as the Internet.
     DIR=/tmp/srt && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -443,10 +392,8 @@ RUN \
     #ls && configure --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# libpng is the official Portable Network Graphics (PNG) reference library (originally called pnglib).
-RUN \
+    rm -rf ${DIR} && \
+    # libpng is the official Portable Network Graphics (PNG) reference library (originally called pnglib).
     DIR=/tmp/png && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -455,10 +402,8 @@ RUN \
     ./configure --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# A library for ARIB STD-B24, decoding JIS 8 bit characters and parsing MPEG-TS stream.
-RUN \
+    rm -rf ${DIR} &&\
+    # A library for ARIB STD-B24, decoding JIS 8 bit characters and parsing MPEG-TS stream.
     DIR=/tmp/b24 && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -468,20 +413,16 @@ RUN \
     ./configure CFLAGS="-I${PREFIX}/include -fPIC" --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# RTMPDump
-RUN \
+    rm -rf ${DIR} &&\
+    # RTMPDump
     DIR=/tmp/rtmpdump && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
     git clone --depth 1 https://github.com/JudgeZarbi/RTMPDump-OpenSSL-1.1.git ${DIR} &&\
     make && \
     make -j1 prefix="${PREFIX}" install && \
-    rm -rf ${DIR}
-
-# libvips
-RUN \
+    rm -rf ${DIR} &&\
+    # libvips
     DIR=/tmp/libvips && \
     mkdir -p ${DIR} && \
     cd ${DIR} && \
@@ -490,13 +431,8 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-debug=no --without-gsf --with-imagemagick --with-webp &&\
     make && \
     make install && \
-    rm -rf ${DIR}
-
-# ffmpeg.org
-RUN \
-    #apk del x265 x265-dev &&\
-    #mv /usr/local/lib/libx265.*  ${PREFIX}/lib &&\
-    # Download ffmpeg
+    rm -rf ${DIR} &&\
+    # ffmpeg.org
     FFMPEG_VERSION=snapshot && \
     DIR=/tmp/ffmpeg \
     && mkdir -p ${DIR} \
@@ -559,7 +495,7 @@ RUN \
     && rm -rf ${DIR}
 
 RUN \
-    apk add python3 py3-pycryptodome py3-pycountry py3-requests py3-pysocks py3-websocket-client rtmpdump \
+    apk --no-cache add python3 py3-pycryptodome py3-pycountry py3-requests py3-pysocks py3-websocket-client \
     py3-setuptools &&\
     DIR=/tmp/streamlink && \
     mkdir -p ${DIR} && \
