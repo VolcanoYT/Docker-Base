@@ -1,4 +1,4 @@
-FROM php:7.4-fpm-alpine
+FROM php:8.0.2-fpm-alpine
 
 ENV USER=sistem \
     GRUP=sistem \
@@ -10,44 +10,35 @@ ENV USER=sistem \
     PREFIX=/usr/local
 
 RUN \
-    # force update
     #sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories &&\
     #echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&\
     #apk upgrade --update-cache --available &&\
-    # add group
     addgroup -g 1000 -S $GRUP &&\
     addgroup -S cctv -g 1002 &&\ 
     adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" &&\
     addgroup "$USER" cctv &&\
-    # add apk
     apk add --no-cache \
     bash curl wget git zip unzip ca-certificates util-linux \
     $FORBULID \
     pcre icu-libs zlib \
     freetype jpeg libwebp libxpm \
     cpulimit py3-pip supervisor composer ffmpeg \
-    dcron libcap && \  
-    # docker php  
+    dcron libcap && \
+    pip3 install --upgrade pip && \
     docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype && \
     docker-php-ext-install bcmath pcntl sysvsem pdo_mysql sockets gd intl opcache exif && \
-    # pip3
-    pip3 install --upgrade pip && \
     pip3 install --no-cache-dir --upgrade streamlink && \
-    # mkdir
     mkdir -p /var/cache/nginx/ && \
     mkdir -p /var/log/nginx/ && \
     mkdir -p /etc/nginx/config/ && \
     mkdir -p $WORKD/cron/ && \
-    # chown
     chown -R $USER:$GRUP /run && \
     chown -R $USER:$GRUP $WORKD && \
     chown -R $USER:$GRUP /var/cache/nginx/ && \
     chown -R $USER:$GRUP /var/log/nginx/ && \
     chown -R $USER:$GRUP /etc/nginx/config/ && \
     chown $USER:$GRUP /usr/sbin/crond && \
-    # crond
-    setcap cap_setgid=ep /usr/sbin/crond  && \
-    # nginx
+    setcap cap_setgid=ep /usr/sbin/crond  && \  
     cd /tmp && \
     wget http://nginx.org/download/nginx-$NGEV.tar.gz && \
     tar xzf nginx-$NGEV.tar.gz && \
@@ -84,7 +75,10 @@ RUN \
     apk update && apk del $FORBULID && \
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
-    
+
+# Copy ffmpeg (THIS BAD?)
+#COPY --from=jrottenberg/ffmpeg:snapshot-alpine /usr/local /usr/local
+
 # Copy startup
 COPY /config/entrypoint.sh /etc/entrypoint.sh
 RUN chmod +x /etc/entrypoint.sh

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -a gbulid=("ffmpeg-snapshot-alpine" "node-pm2-alpine" "novnc-ubuntu" "icecast-alpine" "php-alpine")
+declare -a gbulid=("ffmpeg-snapshot-alpine" "node-pm2-alpine" "novnc-ubuntu" "icecast-alpine" "php-alpine" "php-v8-alpine")
 whatuse="all"
 
 tabel_point="ffmpeg-snapshot-alpine,node-pm2-alpine,novnc-ubuntu,icecast-alpine,php-alpine"

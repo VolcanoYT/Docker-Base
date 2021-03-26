@@ -149,6 +149,17 @@ RUN \
     ./configure --prefix="${PREFIX}" --enable-everything && \
     make && \
     make install && \
+    rm -rf ${DIR}
+
+RUN \
+    DIR=/tmp/mpg123 && \
+    mkdir -p ${DIR} && \
+    cd ${DIR} && \
+    curl -sL http://mpg123.org/download/mpg123-1.26.4.tar.bz2 | \
+    tar -jx --strip-components=1 && \
+    ./configure --prefix="${PREFIX}" && \
+    make && \
+    make install && \
     rm -rf ${DIR} &&\
     # LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under the LGPL. Latest LAME release: v3.100 (October 2017)
     DIR=/tmp/lame && \
