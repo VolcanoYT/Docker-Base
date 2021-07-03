@@ -2,19 +2,9 @@ FROM alpine:3.12
 
 ENV  LD_LIBRARY_PATH=/usr/lib:/usr/lib64 \
      PREFIX=/usr \
-     PKG_CONFIG_PATH="/usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib64/pkgconfig" \
-     tesdemo=1
+     PKG_CONFIG_PATH="/usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/lib64/pkgconfig"
 
-RUN apk --no-cache add \
-    # Protocol
-    ca-certificates libcrypto1.1 libssl1.1 \ 
-    # Basic Linux
-    git bash bzip2 zlib curl tar expat linux-headers util-linux coreutils python3 \
-    # v2
-    libgcc libstdc++ gobject-introspection gettext gnutls fftw lcms2 orc \
-    # lib image
-    libexif giflib librsvg libimagequant libjpeg-turbo tiff &&\
-    buildDeps=" \
+RUN buildDeps=" \
     build-base \
     autoconf \
     automake \
@@ -49,7 +39,17 @@ RUN apk --no-cache add \
     gobject-introspection-dev \
     libimagequant-dev \
     librsvg-dev" && \
-    apk add ${buildDeps}
+    apk --no-cache add \
+    # Protocol
+    ca-certificates libcrypto1.1 libssl1.1 \ 
+    # Basic Linux
+    git bash bzip2 zlib curl tar expat linux-headers util-linux coreutils python3 \
+    # v2
+    libgcc libstdc++ gobject-introspection gettext gnutls fftw lcms2 orc \
+    # lib image
+    libexif giflib librsvg libimagequant libjpeg-turbo tiff \
+    # abc
+    ${buildDeps}
 
 RUN \
     # OpenCORE Framework implementation of Adaptive Multi Rate Narrowband and Wideband (AMR-NB and AMR-WB) speech codec. (TODO: need update)
@@ -203,13 +203,15 @@ RUN \
     cmake -DBUILD_THIRDPARTY:BOOL=ON -DCMAKE_INSTALL_PREFIX="${PREFIX}" . && \
     make && \
     make install && \
-    rm -rf ${DIR} && \
+    rm -rf ${DIR}
+
+RUN \
     # freetype https://www.freetype.org/
     DIR=/tmp/freetype &&\
     mkdir -p ${DIR} &&\
     cd ${DIR} && \
-    curl -sLO https://github.com/freetype/freetype2/archive/master.tar.gz && \
-    tar -zx --strip-components=1 -f master.tar.gz && \
+    curl -sLO https://download.savannah.gnu.org/releases/freetype/freetype-2.10.4.tar.gz && \
+    tar -zx --strip-components=1 -f freetype-2.10.4.tar.gz && \
     ./autogen.sh &&\
     ./configure --prefix="${PREFIX}" --disable-static --enable-shared && \
     make && \
@@ -325,7 +327,8 @@ RUN \
     ./configure --srcdir=${DIR} --prefix="${PREFIX}" && \
     make && \
     make install && \
-    rm -rf ${DIR} && \
+    rm -rf ${DIR}
+RUN \ 
     # LIBPTHREAD
     LIBPTHREAD_STUBS_VERSION=0.4 &&\
     DIR=/tmp/libpthread-stubs && \
@@ -432,7 +435,8 @@ RUN \
     git clone --depth 1 https://github.com/JudgeZarbi/RTMPDump-OpenSSL-1.1.git ${DIR} &&\
     make && \
     make -j1 prefix="${PREFIX}" install && \
-    rm -rf ${DIR} &&\
+    rm -rf ${DIR}
+RUN \ 
     # libvips
     DIR=/tmp/libvips && \
     mkdir -p ${DIR} && \
@@ -456,7 +460,7 @@ RUN \
     --disable-doc \
     --disable-ffplay \
     --enable-shared \
-    --enable-avresample \
+    #--enable-avresample \
     --enable-libopencore-amrnb \
     --enable-libopencore-amrwb \
     --enable-gpl \

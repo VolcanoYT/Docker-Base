@@ -5,7 +5,7 @@ ENV USER=sistem \
     WORKD=/var/www \
     UID=1000 \
     GID=1000 \
-    NGEV=1.19.7 \
+    NGEV=1.20.1 \
     FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
     PREFIX=/usr/local
 
