@@ -10,27 +10,25 @@ ENV USER=sistem \
     PREFIX=/usr/local
 
 RUN \
-    # force update
-    #sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories &&\
-    #echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&\
-    #apk upgrade --update-cache --available &&\
-    # add group
+    # Update ?
+    apk upgrade --update-cache --available &&\    
+    # Add User
     addgroup -g 1000 -S $GRUP &&\
     addgroup -S cctv -g 1002 &&\ 
     adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" &&\
     addgroup "$USER" cctv &&\
-    # add apk
+    # Add APK
     apk add --no-cache \
     bash curl wget git zip unzip ca-certificates util-linux \
     $FORBULID \
     pcre icu-libs zlib \
     freetype jpeg libwebp libxpm \
     cpulimit py3-pip supervisor composer ffmpeg \
-    dcron libcap && \  
-    # docker php  
+    dcron libcap && \    
+    # PHP Ext
     docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype && \
     docker-php-ext-install bcmath pcntl sysvsem pdo_mysql sockets gd intl opcache exif && \
-    # pip3
+    # Install PIP n Streamlink
     pip3 install --upgrade pip && \
     pip3 install --no-cache-dir --upgrade streamlink && \
     # mkdir
@@ -45,9 +43,9 @@ RUN \
     chown -R $USER:$GRUP /var/log/nginx/ && \
     chown -R $USER:$GRUP /etc/nginx/config/ && \
     chown $USER:$GRUP /usr/sbin/crond && \
-    # crond
+    # Add Job
     setcap cap_setgid=ep /usr/sbin/crond  && \
-    # nginx
+    # Add Nginx
     cd /tmp && \
     wget http://nginx.org/download/nginx-$NGEV.tar.gz && \
     tar xzf nginx-$NGEV.tar.gz && \
@@ -81,7 +79,7 @@ RUN \
     --with-http_v2_module && \
     make && \
     make install && \
-    apk update && apk del $FORBULID && \
+    apk del $FORBULID && \    
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
     
