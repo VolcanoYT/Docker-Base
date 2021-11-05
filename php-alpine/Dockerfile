@@ -5,16 +5,16 @@ ENV USER=sistem \
     WORKD=/var/www \
     UID=1000 \
     GID=1000 \
-    NGEV=1.21.2 \
+    nginx=1.21.4 \
     FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
     PREFIX=/usr/local
 
 RUN \
-    # Update ?
+    # Update ? http://nginx.org/en/CHANGES
     apk upgrade --update-cache --available &&\    
     # Add User
-    addgroup -g 1000 -S $GRUP &&\
-    addgroup -S cctv -g 1002 &&\ 
+    addgroup -g $GID -S $GRUP &&\
+    addgroup -g 1001 -S cctv &&\ 
     adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" &&\
     addgroup "$USER" cctv &&\
     # Add APK
@@ -47,9 +47,9 @@ RUN \
     setcap cap_setgid=ep /usr/sbin/crond  && \
     # Add Nginx
     cd /tmp && \
-    wget http://nginx.org/download/nginx-$NGEV.tar.gz && \
-    tar xzf nginx-$NGEV.tar.gz && \
-    cd /tmp/nginx-$NGEV && \
+    wget http://nginx.org/download/nginx-$nginx.tar.gz && \
+    tar xzf nginx-$nginx.tar.gz && \
+    cd /tmp/nginx-$nginx && \
     ./configure \ 
     --prefix=/etc/nginx \
     --sbin-path=/usr/sbin/nginx \
