@@ -5,7 +5,7 @@ ENV USER=sistem \
     WORKD=/var/www \
     UID=1000 \
     GID=1000 \
-    nginx=1.21.4 \
+    nginx=1.21.5 \
     FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
     PREFIX=/usr/local
 
@@ -30,7 +30,7 @@ RUN \
     docker-php-ext-install bcmath pcntl sysvsem pdo_mysql sockets gd intl opcache exif && \
     # Install PIP n Streamlink
     pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir --upgrade streamlink && \
+    pip3 install --no-cache-dir --upgrade streamlink git+https://github.com/streamlink/streamlink.git && \
     # mkdir
     mkdir -p /var/cache/nginx/ && \
     mkdir -p /var/log/nginx/ && \
