@@ -1,6 +1,7 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
+# local server
+#RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 
 ENV USER=sistem \
     WORK=/home/sistem \
@@ -16,14 +17,15 @@ ENV USER=sistem \
 
 EXPOSE $VNC_PORT $NO_VNC_PORT
 
-RUN addgroup $USER && adduser $USER --ingroup $USER --shell /bin/sh --disabled-password --force &&\
+RUN addgroup $USER && adduser $USER --ingroup $USER --shell /bin/sh --disabled-password --force --gecos "" &&\
+    printf "demo123\ndemo123\n" | passwd $USER &&\
     apt-get update && apt-get upgrade -y &&\
     apt-get install -y --no-install-recommends \
     bash sudo wget ca-certificates supervisor unzip locales net-tools procps binutils \
     xvfb dbus-x11 x11vnc novnc xdg-utils alsa-utils \
     mesa-utils libgl1-mesa-dri \
     ttf-ubuntu-font-family ttf-wqy-zenhei fonts-liberation \
-    openbox tint2 qt5-default \
+    openbox tint2 qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
     xfce4-terminal thunar nano &&\
     ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html &&\
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
