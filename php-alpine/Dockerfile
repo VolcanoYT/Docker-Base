@@ -83,7 +83,9 @@ RUN \
     rm -rf /tmp/* && \
     rm -rf /var/cache/apk/*
     
-# Copy startup
+# Copy startup /usr/bin/ or /usr/local/bin/
+COPY --from=mwader/static-ffmpeg:5.0 /ffmpeg /usr/bin/
+COPY --from=mwader/static-ffmpeg:5.0 /ffprobe /usr/bin/
 COPY /config/entrypoint.sh /etc/entrypoint.sh
 RUN chmod +x /etc/entrypoint.sh
 
