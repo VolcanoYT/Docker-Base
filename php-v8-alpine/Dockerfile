@@ -1,20 +1,21 @@
-FROM php:8.0.2-fpm-alpine
+FROM php:8.1-rc-fpm-alpine
 
 ENV USER=sistem \
     GRUP=sistem \
     WORKD=/var/www \
     UID=1000 \
     GID=1000 \
-    NGEV=1.19.7 \
+    NGEV=1.21.6 \
     FORBULID="freetype-dev jpeg-dev libwebp-dev libxpm-dev libzip-dev libc-dev zlib-dev libpng-dev openssl-dev pcre-dev icu-dev build-base linux-headers gcc" \
     PREFIX=/usr/local
 
 RUN \
-    #sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories &&\
-    #echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&\
-    #apk upgrade --update-cache --available &&\
-    addgroup -g 1000 -S $GRUP &&\
-    addgroup -S cctv -g 1002 &&\ 
+    # uid=1000(sistem) gid=1000(sistem) groups=1000(sistem),1002(cctv)
+    # sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories &&\
+    # echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&\
+    apk upgrade --update-cache --available &&\
+    addgroup -g $GID -S $GRUP &&\
+    addgroup -g 1001 -S cctv &&\
     adduser --disabled-password --gecos "" --home "$WORKD" --ingroup "$GRUP" --no-create-home --uid "$UID" "$USER" &&\
     addgroup "$USER" cctv &&\
     apk add --no-cache \
@@ -22,7 +23,7 @@ RUN \
     $FORBULID \
     pcre icu-libs zlib \
     freetype jpeg libwebp libxpm \
-    cpulimit py3-pip supervisor composer ffmpeg \
+    cpulimit py3-pip supervisor composer \
     dcron libcap && \
     pip3 install --upgrade pip && \
     docker-php-ext-configure gd --with-webp --with-jpeg --with-xpm --with-freetype && \
@@ -56,7 +57,7 @@ RUN \
     --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
     --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
     --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
-    #https://github.com/iphoting/heroku-buildpack-php-tyler/issues/19#issue-11272482
+    # https://github.com/iphoting/heroku-buildpack-php-tyler/issues/19#issue-11272482
     --user=$USER \
     --group=$GRUP \
     # https://www.nginx.com/resources/wiki/modules/
@@ -78,6 +79,8 @@ RUN \
 
 # Copy ffmpeg (THIS BAD?)
 #COPY --from=jrottenberg/ffmpeg:snapshot-alpine /usr/local /usr/local
+COPY --from=mwader/static-ffmpeg:5.0 /ffmpeg /usr/bin/
+COPY --from=mwader/static-ffmpeg:5.0 /ffprobe /usr/bin/
 
 # Copy startup
 COPY /config/entrypoint.sh /etc/entrypoint.sh
